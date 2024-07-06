@@ -1,0 +1,30 @@
+{
+  "name": "@artteiv.wkm/password-generator",
+  "version": "1.0.4",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sontranwakumo/password-gen.git"
+  },
+  "keywords": [],
+  "author": "artteiv.wkm",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "@artteiv.wkm/password-generator": "^1.0.1"
+  }
+}
