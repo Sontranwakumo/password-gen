@@ -1,11 +1,17 @@
 export declare const greet: (name: string) => string;
-export declare class PasswordOptions {
-    length: number;
-    constructor();
-    toString(): string;
+export interface PasswordOptions {
+    Length: number;
+    Numbers?: boolean;
+    Uppercase?: boolean;
+    Lowercase?: boolean;
+    ExcludeSimilarCharacters?: boolean;
+    SpecialCharacters?: boolean | string;
 }
 export declare class PasswordGenerator {
-    private static charset;
-    constructor(length: number, charset: string);
-    static generate(length: number): string;
+    private charset;
+    private PasswordOptions;
+    constructor(PasswordOptions?: PasswordOptions | number);
+    private DefaultPasswordOptions;
+    SetPasswordOptions(PasswordOptions?: PasswordOptions | number): void;
+    generate(): string;
 }
