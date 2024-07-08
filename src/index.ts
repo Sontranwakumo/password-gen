@@ -17,7 +17,7 @@ export class PasswordGenerator {
     private charset: string;
     private PasswordOptions: PasswordOptions;
     constructor(PasswordOptions?: PasswordOptions|number) {
-        this.PasswordOptions = {Length:10};
+        this.PasswordOptions = {Length:12};
         this.charset = '';
         this.SetPasswordOptions(PasswordOptions);
     }
@@ -35,7 +35,10 @@ export class PasswordGenerator {
         if (typeof PasswordOptions === 'undefined'){
             this.PasswordOptions = this.DefaultPasswordOptions();
         }
-        else if (typeof PasswordOptions === 'number' && PasswordOptions >= 1){
+        else if (typeof PasswordOptions === 'number'){
+            if (PasswordOptions>200 || PasswordOptions<=0){
+                throw new Error("Invalid range of length");
+            }
             this.PasswordOptions = {Length: PasswordOptions};
         }
         else if (typeof PasswordOptions === 'object'){
@@ -58,8 +61,10 @@ export class PasswordGenerator {
         if (this.PasswordOptions.ExcludeSimilarCharacters==true){
             this.charset = this.charset.replace('0', '');
             this.charset = this.charset.replace('O', '');
+            this.charset = this.charset.replace('o', '');
             this.charset = this.charset.replace('I', '');
             this.charset = this.charset.replace('l', '');
+            this.charset = this.charset.replace('i', '');
         }
         if (typeof this.PasswordOptions.SpecialCharacters === 'string'){
             this.charset += this.PasswordOptions.SpecialCharacters;
@@ -67,7 +72,9 @@ export class PasswordGenerator {
         else if (this.PasswordOptions.SpecialCharacters!=false){
             this.charset += '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
         }
-
+        if (this.charset == ''){
+            this.SetPasswordOptions();
+        }
     }
     public generate(): string {
         let res = '';
@@ -80,3 +87,9 @@ export class PasswordGenerator {
 /*
     Example:
 */
+const data: PasswordOptions = {
+    Length:15,
+
+}
+let PasGen = new PasswordGenerator(data);
+let pass:string = PasGen.generate();

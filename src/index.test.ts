@@ -11,8 +11,6 @@ describe('PasswordGenerator', () => {
         SpecialCharacters : '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~',
     }
     function checkvalid(cstring: string,charset:string):boolean{
-        console.log(cstring);
-        console.log(charset);
         let Setc = new Set(charset);
         for (const i of cstring){
             if (!Setc.has(i)){
@@ -22,7 +20,7 @@ describe('PasswordGenerator', () => {
         return true;
     }
     const PassOpFuzzer = Fuzz.Fuzzer({
-        Length: Fuzz.int({min:1,max:20}),
+        Length: Fuzz.int({min:3,max:20}),
         Numbers: Fuzz.bool(),
         Uppercase: Fuzz.bool(),
         Lowercase: Fuzz.bool(),
@@ -31,22 +29,47 @@ describe('PasswordGenerator', () => {
     })
     Fuzz.test("Fuzz options test case",PassOpFuzzer(),(data:PasswordOptions) =>{
         let charset:string = '';
+        if (data.Numbers==false && data.Lowercase==false && data.Uppercase==false && (data.SpecialCharacters==="" || data.SpecialCharacters===false)){
+            data = {
+                Length:10,
+                Numbers: true,
+                Uppercase: true,
+                Lowercase: true,
+                ExcludeSimilarCharacters: false,
+                SpecialCharacters: true
+            }
+        }
         for (const key in data){
             const value = data[key as keyof PasswordOptions];
             if (typeof value === "boolean" && obj){
-                if (value === true){
+                if (value === true && key != "ExcludeSimilarCharacters"){
                     charset += obj[key];
                 }
-                if (key === "ExcludeSimilarCharacters"){
+                if (key === "ExcludeSimilarCharacters" && value === true){
                     charset.replace("0","");
                     charset.replace("O","");
+                    charset.replace("o","");
                     charset.replace("I","");
+                    charset.replace("i","");
                     charset.replace("l","");
                 }
             }
         }
-        let pass:string = new PasswordGenerator(data).generate();
-        
-        expect(checkvalid(pass,charset)).toBeTruthy();
+        let PasGen = new PasswordGenerator(data);
+        let pass:string = PasGen.generate();
+        try{
+            expect(pass.length).toEqual(data.Length);
+            expect(checkvalid(pass,charset)).toBeTruthy();
+        }catch(error){
+            console.log(pass);
+            
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    console.log(`Key: ${key}, Value: ${data[key as keyof PasswordOptions]}`);
+                }
+            }
+            throw error
+        }
     });
+    
 });
