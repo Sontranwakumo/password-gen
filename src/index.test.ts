@@ -1,66 +1,52 @@
 import { PasswordGenerator, PasswordOptions } from './index';
-
+import Fuzz from 'jest-fuzz';
 describe('PasswordGenerator', () => {
-    test('Check default password',()=>{
-        let PasGen = new PasswordGenerator();
-        let pass = PasGen.generate();
-        expect(pass.length).toEqual(10);
-        // check invalid characters
-        expect(pass).toMatch(/^[A-Za-z0-9!"#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~]*$/);
-    });
-    for (let i = 0; i<5; i++){
-        test('Password with length type 1',()=>{
-            let rnd = Math.floor(Math.random() * 20)+1;
-            let PasGen = new PasswordGenerator({Length: rnd});
-            let pass = PasGen.generate();
-            expect(pass.length).toEqual(rnd);
-            expect(pass).toMatch(/^[A-Za-z0-9!"#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~]*$/);
-        });
+    interface Obj{
+        [key:string]:any;
     }
-    for (let i = 0; i<5; i++){
-        test('Password with length type 2',()=>{
-            let rnd = Math.floor(Math.random()*20)+1;
-            let PasGen = new PasswordGenerator(rnd);
-            let pass = PasGen.generate();
-            expect(pass.length).toEqual(rnd);
-        });
+    const obj:Obj = {
+        Numbers : "0123456789",
+        Lowercase : "abcdefghijklmnopqrstuvwxyz",
+        Uppercase : "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        SpecialCharacters : '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~',
     }
-    test('Password with PassOptions',()=>{
-        let specChar = "@#$";
-        let PasGen = new PasswordGenerator({
-            Length:15,
-            Numbers: false,
-            Lowercase: false,
-            ExcludeSimilarCharacters: true,
-            SpecialCharacters:specChar
-        });
-        let pass = PasGen.generate();
-        expect(pass.length).toEqual(15);
-        expect(pass).toMatch(/^[A-Z!"@#$]*$/);
-    });
-    test('Password with PassOptions 2',()=>{
-        let PasGen = new PasswordGenerator({
-            Length:15,
-            Numbers: false,
-            Lowercase: false,
-            ExcludeSimilarCharacters: true,
-            SpecialCharacters:true
-        });
-        let pass = PasGen.generate();
-        expect(pass.length).toEqual(15);
-        expect(pass).toMatch(/^[A-Z!"#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~]*$/);
-    });
-    test('Password with PassOptions 3',()=>{
-        let PasGen = new PasswordGenerator({
-            Length:15,
-            Numbers: false,
-            Uppercase:true,
-            Lowercase: false,
-            ExcludeSimilarCharacters: true,
-            SpecialCharacters:false
-        });
-        let pass = PasGen.generate();
-        expect(pass.length).toEqual(15);
-        expect(pass).toMatch(/^[A-Z]*$/);
+    function checkvalid(cstring: string,charset:string):boolean{
+        console.log(cstring);
+        console.log(charset);
+        let Setc = new Set(charset);
+        for (const i of cstring){
+            if (!Setc.has(i)){
+                return false;
+            }
+        }
+        return true;
+    }
+    const PassOpFuzzer = Fuzz.Fuzzer({
+        Length: Fuzz.int({min:1,max:20}),
+        Numbers: Fuzz.bool(),
+        Uppercase: Fuzz.bool(),
+        Lowercase: Fuzz.bool(),
+        ExcludeSimilarCharacters: Fuzz.bool(),
+        SpecialCharacters: Fuzz.bool()
+    })
+    Fuzz.test("Fuzz options test case",PassOpFuzzer(),(data:PasswordOptions) =>{
+        let charset:string = '';
+        for (const key in data){
+            const value = data[key as keyof PasswordOptions];
+            if (typeof value === "boolean" && obj){
+                if (value === true){
+                    charset += obj[key];
+                }
+                if (key === "ExcludeSimilarCharacters"){
+                    charset.replace("0","");
+                    charset.replace("O","");
+                    charset.replace("I","");
+                    charset.replace("l","");
+                }
+            }
+        }
+        let pass:string = new PasswordGenerator(data).generate();
+        
+        expect(checkvalid(pass,charset)).toBeTruthy();
     });
 });
